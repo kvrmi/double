@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Double Online</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .color-circle {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            margin: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            background: #2a2a2a;
+        }
+
+        button {
+            padding: 15px 40px;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            border: none;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #1a1a1a;
+            margin: 20px;
+            transition: 0.3s;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-text {
+            font-size: 24px;
+            margin: 15px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            background: #2a2a2a;
+        }
+
+        .timer {
+            font-size: 16px;
+            color: #ff4444;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачивает WebApp на весь экран
+    </script>
+	
+    <div class="color-circle" id="colorCircle">?</div>
+    <div class="result-text" id="resultText">Ставить на: —</div>
+    <button onclick="startGame()" id="gameButton">Узнать результат</button>
+    <div class="timer" id="timer"></div>
+
+    <script>
+        let lastPlayTime = 0;
+        const colors = {
+            red: '#ff4444',
+            black: '#808080',
+            green: '#00ff88'
+        };
+
+        function getResult() {
+            const rand = Math.random();
+            if(rand < 0.02) return 'green'; // 2% шанс
+            return rand < 0.51 ? 'red' : 'black'; // 49% red, 49% black
+        }
+
+        function startGame() {
+            const now = Date.now();
+            const timeLeft = 60000 - (now - lastPlayTime);
+            
+            if(timeLeft > 0) {
+                document.getElementById('resultText').textContent = `Ждите ${Math.ceil(timeLeft/1000)} сек.`;
+                return;
+            }
+
+            lastPlayTime = now;
+            document.getElementById('gameButton').disabled = true;
+            
+            const result = getResult();
+            const circle = document.getElementById('colorCircle');
+            
+            // Показываем результат
+            circle.style.background = colors[result];
+            circle.textContent = result.toUpperCase();
+            
+            // Обновляем текст
+            document.getElementById('resultText').innerHTML = 
+                `Ставить на: <span style="color:${colors[result]}">${
+                    result === 'red' ? 'КРАСНОЕ' : 
+                    result === 'black' ? 'ЧЕРНОЕ' : 
+                    'ЗЕЛЕНОЕ'
+                }</span>`;
+
+            // Таймер
+            let secondsLeft = 60;
+            const timer = setInterval(() => {
+                secondsLeft--;
+                document.getElementById('timer').textContent = 
+                    `Следующая игра через: ${secondsLeft} сек.`;
+                
+                if(secondsLeft <= 0) {
+                    clearInterval(timer);
+                    document.getElementById('gameButton').disabled = false;
+                    circle.style.background = '#2a2a2a';
+                    circle.textContent = '?';
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
